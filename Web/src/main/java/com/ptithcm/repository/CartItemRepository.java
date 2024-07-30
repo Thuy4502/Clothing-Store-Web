@@ -1,0 +1,16 @@
+package com.ptithcm.repository;
+
+import com.ptithcm.model.Cart;
+import com.ptithcm.model.CartItem;
+import com.ptithcm.model.Product;
+import com.ptithcm.model.ProductDetail;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface CartItemRepository extends JpaRepository<CartItem, Long> {
+    @Query("SELECT ci FROM CartItem ci WHERE ci.cart = :cart AND ci.productDetail = :productDetail AND ci.size = :size AND ci.cart.customer.customerId = :userId")
+    CartItem isCartItemExist(@Param("cart") Cart cart, @Param("productDetail") ProductDetail productDetail, @Param("size") String size, @Param("userId") Long userId);
+}
