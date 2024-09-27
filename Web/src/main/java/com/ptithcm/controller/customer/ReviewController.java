@@ -38,9 +38,5 @@ public class ReviewController {
         return new ResponseEntity<>(review, HttpStatus.CREATED);
     }
 
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<List<Review>> getProductReview(@PathVariable Long productId) {
-        List<Review> reviews = reviewService.getProductsReview(productId);
-        return new ResponseEntity<>(reviews, HttpStatus.OK);
-    }
+
 }

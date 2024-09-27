@@ -4,6 +4,7 @@ import com.ptithcm.config.JwtTokenProvider;
 import com.ptithcm.exception.UserException;
 import com.ptithcm.model.*;
 import com.ptithcm.repository.*;
+import com.ptithcm.request.ChangePasswordRequest;
 import com.ptithcm.request.SignUpRequest;
 import com.ptithcm.service.MailService;
 import com.ptithcm.service.UserService;
@@ -81,7 +82,6 @@ public class UserServiceImpl implements UserService {
                     customer.setLastName(rq.getLastname());
                     customer.setUpdated_at(LocalDateTime.now());
                     Customer saveCustomer = customerRepo.save(customer);
-
                     if (saveCustomer != null) {
                         Cart cart = new Cart();
                         cart.setTotalItem(0);
@@ -98,6 +98,7 @@ public class UserServiceImpl implements UserService {
                     staff.setFirstName(rq.getFirstname());
                     staff.setLastName(rq.getLastname());
                     Staff saveStaff = staffRepo.save(staff);
+                    userRepo.save(user);
                 }
             }
             return saveUser;
@@ -123,6 +124,17 @@ public class UserServiceImpl implements UserService {
         emailService.sendMail(email, subject,content);
         otpAccept = otp;
         return otpAccept;
+    }
+
+    @Override
+    public User changePassword(String jwt, ChangePasswordRequest rq) throws Exception {
+        User user = findUserProfileByJwt(jwt);
+        if(passwordEncoder.matches(rq.getPassword(),user.getPassword())){
+            user.setPassword(passwordEncoder.encode(rq.getNewPassword()));
+            user.setUpdated_at(LocalDateTime.now());
+            return userRepo.save(user);
+        }
+        throw new Exception("Password is incorrect");
     }
 
 }

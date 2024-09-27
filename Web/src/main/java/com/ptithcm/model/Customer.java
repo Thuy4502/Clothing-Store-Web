@@ -56,7 +56,6 @@ public class Customer {
     @Column
     private Long cart_id;
 
-    @JsonIgnore
     @OneToOne
     @JoinColumn(name="user_id",insertable = false,updatable = false)
     private User user;

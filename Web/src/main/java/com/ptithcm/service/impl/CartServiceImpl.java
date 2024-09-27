@@ -43,27 +43,15 @@ public class CartServiceImpl implements CartService {
         CartItem isPresent = cartItemService.isCartItemExist(cart, productDetail, req.getSize(),userId);
         if(isPresent==null) {
             CartItem cartItem = new CartItem();
-//            cartItem.setProductDetail(productDetail);
-//            cartItem.setQuantity(req.getQuantity());
-//            cartItem.setCart(cart);
-//
-//            double price=req.getPrice();
-//            cartItem.setPrice(price);
-//            cartItem.setSize(req.getSize());
-//            CartItem createdCartItem = cartItemService.createCartItem(cartItem);
-//            cart.getCartItems().add(createdCartItem);
             cartItem.setSize(req.getSize());
             cartItem.setQuantity(1);
             cartItem.setCartId(cart.getCartId());
             cartItem.setPrice(req.getPrice());
-
+            cartItem.setColor(req.getColor());
             cartItem.setProductDetailId(productDetail.getProductDetailId());
             cartItemRepository.save(cartItem);
 
         }
-        System.out.println(
-                "Gía nè" + req.getPrice()
-        );
         return "Item added to cart";
     }
 
@@ -73,7 +61,7 @@ public class CartServiceImpl implements CartService {
         double totalPrice=0;
         int totalItem=0;
         for(CartItem cartItem:cart.getCartItems()) {
-            totalPrice+=cartItem.getPrice();
+            totalPrice+=cartItem.getPrice()*cartItem.getQuantity();
             totalItem+=cartItem.getQuantity();
         }
         cart.setTotalItem(totalItem);

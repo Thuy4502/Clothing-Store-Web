@@ -36,6 +36,9 @@ public class CartItem {
     @Column(name = "price", nullable = false)
     private Double price;
 
+    @Column
+    private String color;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "cart_id", insertable = false, updatable = false)

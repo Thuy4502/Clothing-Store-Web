@@ -13,7 +13,6 @@ import com.ptithcm.service.ProductService;
 import com.ptithcm.service.UserService;
 import lombok.AllArgsConstructor;
 import org.hibernate.cache.CacheException;
-import org.springframework.expression.spel.ast.OpAnd;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -43,7 +42,6 @@ public class CartItemServiceImpl implements CartItemService {
         User user = userService.findUserById(item.getCart().getCustomer().getCustomerId());
         if(user.getUserId().equals(userId)) {
             item.setQuantity(cartItem.getQuantity());
-            item.setPrice(item.getProductDetail().getProduct().getCurrentPrice());
         }
         return cartItemRepository.save(item);
     }
@@ -58,20 +56,12 @@ public class CartItemServiceImpl implements CartItemService {
     @Override
     public void removeCartItem(Long userId, Long cartItemId) throws Exception {
        CartItem cartItem = findCartItemById(cartItemId);
-//       User user=userService.findUserById(cartItem.getCart().getCustomer().getUser().getUserId());
-//       User reqUser = userService.findUserById(userId);
-//       if(user.getUserId().equals(reqUser.getUserId()   )) {
-//
-//       } else {
-//           throw new UserException("You can't remove another users item");
-//       }
-        cartItemRepository.deleteById(cartItemId);
+       cartItemRepository.deleteById(cartItemId);
     }
 
     @Override
     public CartItem findCartItemById(Long cartItemId) throws CartItemException {
         Optional<CartItem> opt = cartItemRepository.findById(cartItemId);
-
         if(opt.isPresent()) {
             return opt.get();
         }

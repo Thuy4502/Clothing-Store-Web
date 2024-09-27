@@ -17,15 +17,6 @@ public class ProductDetailServiceImpl implements ProductDetailService {
     @Autowired
     private ProductDetailRepository productDetailRepository;
 
-//    @Override
-//    public ProductDetail createProductDetail(ProductDetailRequestDTO productDetailRequest) {
-//        ProductDetail productDetail = new ProductDetail();
-//        productDetail.setSize(productDetailRequest.getSize());
-//        productDetail.setQuantity(productDetailRequest.getQuantity());
-//        productDetail.setProduct(productDetailRequest.getProduct());
-//        return productDetailRepository.save(productDetail);
-//    }
-
     @Override
     public String deleteProductDetail(Long id) throws ProductException {
         ProductDetail productDetail = productDetailRepository.findById(id)

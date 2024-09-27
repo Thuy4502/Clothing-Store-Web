@@ -28,24 +28,23 @@ public class User {
     @Column(name="create_at")
     private LocalDateTime createdAt;
     private String status;
+
     @Column(name="updated_at")
     private LocalDateTime updated_at;
+
+    @Column
+    private int point;
+
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "role_id",insertable = false,updatable = false)
     private Role role;
-    @OneToOne
-    @JoinColumn(name="customer_id",insertable = false,updatable = false)
+
+    @OneToOne(mappedBy = "user")
+    @JsonIgnore
     private Customer customer;
-    @OneToOne
-    @JoinColumn(name="staff_id",insertable = false,updatable = false)
+
+    @OneToOne(mappedBy = "user")
+    @JsonIgnore
     private Staff staff;
-
-
-
-
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private List<Address> address = new ArrayList<>();
-
-
 }

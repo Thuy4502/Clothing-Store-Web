@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cart")
+@RequestMapping("/customer/cart")
 public class CartController {
     private final CartService cartService;
     private final  UserService userService;

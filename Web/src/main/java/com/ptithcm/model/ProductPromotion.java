@@ -9,6 +9,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -23,29 +24,27 @@ public class ProductPromotion {
     @Column(name = "product_promotion_id")
     private Long productPromotionId;
 
+    @Column
+    private Long product_id;
+
+    @Column
+    private  Long promotion_id;
+
     @ManyToOne
     @JsonIgnore
-
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id",insertable = false,updatable = false)
     private Product product;
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "promotion_id")
+    @JoinColumn(name = "promotion_id",insertable = false,updatable = false)
     private Promotion promotion;
 
-    @Column(name = "discount_value")
 
-    private BigDecimal discountValue;
 
-    @Column(name = "start_date")
-    private LocalDate startDate;
 
-    @Column(name = "end_date")
-    private LocalDate endDate;
 
-    @OneToMany(mappedBy = "promotion")
-    @JsonIgnore
-    private List<ProductPromotion> productPromotions;
+
+
 
 }

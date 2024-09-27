@@ -11,6 +11,6 @@ import java.util.List;
 
 @Repository
 public interface StaffRepository extends JpaRepository<Staff, Long> {
-    @Query("SELECT s FROM Staff s WHERE s.user_id = :userId")
-    List<ProductDetail> findStaffByUserId(@Param("userId") Long userId);
+    @Query("SELECT s FROM Staff s WHERE s.user.id = :userId")
+    Staff findStaffByUserId(@Param("userId") Long userId);
 }

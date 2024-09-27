@@ -22,11 +22,16 @@ public class OrderItem {
 
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id",insertable = false,updatable = false)
     private Order order;
 
+    @Column
+    private Long order_id;
+    @Column
+    private Long product_detail_id;
+
     @ManyToOne
-    @JoinColumn(name = "product_detail_id")
+    @JoinColumn(name = "product_detail_id",insertable = false, updatable = false)
     private ProductDetail productDetail;  // Đổi tên thành productDetail để khớp với ProductDetail
 
     @Column(name = "quantity")

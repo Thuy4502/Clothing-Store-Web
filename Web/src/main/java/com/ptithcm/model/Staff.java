@@ -20,7 +20,7 @@ public class Staff {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="staff_id")
-    private Long staffId;  // Đổi tên từ customerId thành staffId
+    private Long staffId;
 
     @Column(name="first_name")
     private String firstName;
@@ -31,6 +31,9 @@ public class Staff {
     @Column(name="gender")
     private String gender;
 
+    @Column(name="id_number")
+    private String idNumber;
+
     @Column(name="email")
     private String email;
 
@@ -38,12 +41,12 @@ public class Staff {
     private String phoneNumber;
 
     @Column(name="address")
-    private String address;  // Thêm @Column cho address nếu cần
+    private String address;
 
     @Column(name="date_of_birth")
     private LocalDate dateOfBirth;
 
-    @Column(name="tax_id")  // Đổi tên từ taxt_id thành tax_id
+    @Column(name="tax_id")
     private String taxId;
 
     @Column(name="hired_date")
@@ -51,9 +54,9 @@ public class Staff {
 
     @Column
     private Long user_id;
-    @JsonIgnore
+
     @OneToOne
-    @JoinColumn(name="user_id",insertable = false,updatable = false)  // Chỉ định khóa ngoại
+    @JoinColumn(name="user_id",insertable = false,updatable = false)
     private User user;
     @JsonIgnore
     @OneToMany(mappedBy = "createdBy")
@@ -67,4 +70,8 @@ public class Staff {
     @JsonIgnore
     @OneToMany(mappedBy = "acceptedBy")
     private List<Order> ordersAccepted;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "staff_bill")
+    private List<Bill> bills;
 }

@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -78,25 +79,33 @@ public class AuthController {
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
 
-        Authentication authentication = authenticate(username, password);
+        if (username == null || username.trim().isEmpty()) {
+            return new ResponseEntity<>(new AuthResponse(null, "Username is required"), HttpStatus.BAD_REQUEST);
+        }
+
+        UserDetails userDetails;
+        try {
+            userDetails = userDetailsService.loadUserByUsername(username);
+        } catch (UsernameNotFoundException ex) {
+            return new ResponseEntity<>(new AuthResponse(null, "Username does not exist"), HttpStatus.UNAUTHORIZED);
+        }
+
+        if (password == null || password.trim().isEmpty()) {
+            return new ResponseEntity<>(new AuthResponse(null, "Password is required"), HttpStatus.BAD_REQUEST);
+        }
+
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            return new ResponseEntity<>(new AuthResponse(null, "Password is incorrect for this username"), HttpStatus.UNAUTHORIZED);
+        }
+
+        // Nếu xác thực thành công, tạo token và trả về phản hồi thành công
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtTokenProvider.generateAccessToken(authentication);
         AuthResponse authResponse = new AuthResponse(token, "Signin successful");
-        return new ResponseEntity<AuthResponse>(authResponse, HttpStatus.CREATED);
-
+        return new ResponseEntity<>(authResponse, HttpStatus.OK);
     }
 
-    private Authentication authenticate(String username, String password) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-        if (userDetails == null) {
-            throw new BadCredentialsException("Invalid username");
-        }
-        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-            throw new BadCredentialsException("Invalid password");
-        }
-        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-    }
     @PostMapping("forgot-password")
     public ResponseEntity<ApiResponse> forgetPassword(@RequestBody SignUpRequest rq) throws Exception {
         ApiResponse res = new ApiResponse();

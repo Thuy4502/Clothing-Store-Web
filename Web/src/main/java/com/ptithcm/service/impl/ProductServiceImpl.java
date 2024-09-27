@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -88,7 +89,6 @@ public class ProductServiceImpl implements ProductService {
         Product p = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductException("Product not found with id: " + productId));
 
-        // Cập nhật các thuộc tính của sản phẩm
         p.setProductName(productRequest.getProductName());
         p.setImage(productRequest.getImage());
         p.setDescription(productRequest.getDescription());
@@ -98,33 +98,27 @@ public class ProductServiceImpl implements ProductService {
         p.setCurrentPrice(productRequest.getCurrentPrice());
         p.setStatus(productRequest.getStatus());
 
-        // Cập nhật Brand nếu có brandId
         if (productRequest.getBrandId() != null) {
             Brand brand = brandRepository.findById(productRequest.getBrandId())
                     .orElseThrow(() -> new ProductException("Brand not found with id: " + productRequest.getBrandId()));
             p.setBrand(brand);
         }
 
-        // Cập nhật Category nếu có categoryId
         if (productRequest.getCategoryId() != null) {
             Category category = categoryRepository.findById(productRequest.getCategoryId())
                     .orElseThrow(() -> new ProductException("Category not found with id: " + productRequest.getCategoryId()));
             p.setCategory(category);
         }
 
-        // Xử lý chi tiết sản phẩm
         List<ProductRequestDTO.ProductDetailDTO> productDetails = productRequest.getProductDetails();
         if (productDetails != null) {
-            // Tạo một tập hợp các kích thước chi tiết sản phẩm từ yêu cầu
             Set<String> newDetailSizes = productDetails.stream()
                     .map(ProductRequestDTO.ProductDetailDTO::getSize)
                     .collect(Collectors.toSet());
 
-            // Xóa các chi tiết sản phẩm không có trong yêu cầu
             List<ProductDetail> existingDetails = p.getProductDetails();
             existingDetails.removeIf(detail -> !newDetailSizes.contains(detail.getSize()));
 
-            // Cập nhật hoặc giữ nguyên các chi tiết sản phẩm hiện có
             for (ProductRequestDTO.ProductDetailDTO detailDTO : productDetails) {
                 ProductDetail existingDetail = existingDetails.stream()
                         .filter(detail -> detail.getSize().equals(detailDTO.getSize()))
@@ -132,7 +126,6 @@ public class ProductServiceImpl implements ProductService {
                         .orElse(null);
 
                 if (existingDetail != null) {
-                    // Cập nhật số lượng chi tiết sản phẩm đã tồn tại
                     existingDetail.setQuantity(detailDTO.getQuantity());
                 } else {
                     // Thêm chi tiết sản phẩm mới nếu chưa tồn tại
@@ -145,7 +138,6 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
-        // Lưu sản phẩm đã cập nhật
         return productRepository.save(p);
     }
 
@@ -161,6 +153,16 @@ public class ProductServiceImpl implements ProductService {
         if(opt.isPresent()) {
             return opt.get();
         }throw new ProductException("Product not found with id-"+productId);
+    }
+
+    @Override
+    public String deleteProduct(Long productId, Long staffId) throws ProductException {
+        Product product = findProductById(productId);
+        System.err.println("Delete product " + product.getProductId() + " - " + productId);
+        product.setStatus("Inactive");
+        product.setUpdateBy(staffId);
+        productRepository.save(product);
+        return "Stopped Selling Success";
     }
 
     @Override
@@ -181,11 +183,5 @@ public class ProductServiceImpl implements ProductService {
 
         return filteredProducts;
     }
-
-//    @Override
-//    public List<Product> findProductsByCategory(String category) throws ProductException {
-//        return List.of();
-//    }
-
 
 }

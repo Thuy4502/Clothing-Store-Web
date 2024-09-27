@@ -1,16 +1,12 @@
 package com.ptithcm.service.impl;
 
 import com.ptithcm.exception.OrderException;
+import com.ptithcm.exception.ProductException;
+import com.ptithcm.exception.UserException;
 import com.ptithcm.model.*;
-import com.ptithcm.repository.CartRepository;
-import com.ptithcm.repository.OrderItemRepository;
-import com.ptithcm.repository.OrderRepository;
-import com.ptithcm.repository.UserRepository;
+import com.ptithcm.repository.*;
 import com.ptithcm.request.OrderRequest;
-import com.ptithcm.service.CartItemService;
-import com.ptithcm.service.CartService;
-import com.ptithcm.service.OrderService;
-import com.ptithcm.service.ProductService;
+import com.ptithcm.service.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,13 +23,17 @@ public class OrderServiceImpl implements OrderService {
     private CartRepository cartRepository;
     private CartItemService cartItemService;
     private ProductService productService;
-    private UserRepository userRepository;
+    private UserService userService;
+    private StaffService staffService;
     private OrderItemRepository orderItemRepository;
     private CartService cartService;
+    private BillRepository billRepository;
+    private ProductDetailRepository productDetailRepository;
+    private CustomerService customerService;
 
 
     @Override
-    public Order createOrder(Customer customer, Order req) {
+    public Order createOrder(Customer customer, Order req) throws ProductException {
         Cart cart = cartService.findCustomerCart(customer.getCustomerId());
         List<OrderItem> orderItems= new ArrayList<>();
         for (CartItem item : cart.getCartItems()) {
@@ -62,9 +62,18 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder=orderRepository.save(createdOrder);
 
         for (OrderItem item: orderItems) {
-            item.setOrder(savedOrder);
+            item.setOrder_id(savedOrder.getOrderId());
+            ProductDetail detail = productDetailRepository.findProductDetailBySizeNameAndProductId(item.getProductDetail().getProduct().getProductId(), item.getSize());
+            item.setProduct_detail_id(detail.getProductDetailId());
+            detail.setQuantity(detail.getQuantity()- item.getQuantity());
+            productDetailRepository.save(detail);
             orderItemRepository.save(item);
         }
+        cart.getCartItems().clear();
+        cart.setTotalPrice(0);
+        cart.setTotalItem(0);
+        cartRepository.save(cart);
+
         return savedOrder;
     }
 
@@ -99,11 +108,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order deliveredOrder(Long orderId) throws OrderException {
+    public Order deliveredOrder(Long orderId, String jwt) throws OrderException, UserException {
+        User user = userService.findUserProfileByJwt(jwt);
+        Staff staff = staffService.findStaffByUserId(user.getUserId());
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderException("Order not found with ID: " + orderId));
         order.setStatus("DELIVERED");
-        return orderRepository.save(order);
+        Order save = orderRepository.save(order);
+        Bill bill = new Bill();
+        bill.setOrder_id(save.getOrderId());
+        bill.setCreated_at(LocalDateTime.now());
+        bill.setCreated_by(staff.getStaffId());
+        billRepository.save(bill);
+
+        return save;
     }
 
     @Override
@@ -137,10 +155,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderRequest> findAllOrderItems(Long orderId) {
-        // Lấy dữ liệu từ repository bằng cách sử dụng câu truy vấn JPQL
+
         List<Object[]> results = orderRepository.findAllOrderItem(orderId);
 
-        // Chuyển đổi dữ liệu từ Object[] sang OrderRequest
         List<OrderRequest> orderItems = results.stream()
                 .map(result -> {
                     try {
@@ -191,6 +208,39 @@ public class OrderServiceImpl implements OrderService {
         return orderItems;
 
     }
+
+    @Override
+    public Order orderBuyNow(String jwt, OrderRequest rq) throws UserException {
+        User user = userService.findUserProfileByJwt(jwt);
+        Customer customer = customerService.findCustomerByUserId(user.getUserId());
+        Order order = new Order();
+        order.setOrderDate(LocalDateTime.now());
+        order.setCustomerName(rq.getCustomerName());
+        order.setCustomer_id(customer.getCustomerId());
+        order.setCustomerEmail(rq.getCustomerEmail());
+        order.setCustomerAddress(rq.getCustomerAddress());
+        order.setStatus("PENDING");
+        order.setCustomerPhone(rq.getCustomerPhone());
+        order.setTotalItem(rq.getTotalItem());
+        order.setTotalAmount(rq.getTotalAmount());
+        Order save = orderRepository.save(order);
+        if(save != null){
+            OrderItem orderItem = new OrderItem();
+            ProductDetail productDetail = productDetailRepository.findProductDetailBySizeNameAndProductId(rq.getProductId(),rq.getSize());
+            orderItem.setQuantity(rq.getQuantity());
+            orderItem.setSize(rq.getSize());
+            orderItem.setPrice(rq.getPrice());
+            orderItem.setColor(rq.getColor());
+            orderItem.setProduct_detail_id(productDetail.getProductDetailId());
+            orderItem.setOrder_id(save.getOrderId());
+            productDetail.setQuantity(productDetail.getQuantity()- rq.getQuantity());
+            productDetailRepository.save(productDetail);
+            orderItemRepository.save(orderItem);
+        }
+        return save;
+    }
+
+
 
 
 }

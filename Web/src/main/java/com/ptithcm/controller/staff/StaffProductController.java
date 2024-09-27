@@ -2,10 +2,15 @@ package com.ptithcm.controller.staff;
 
 import com.ptithcm.dto.ProductRequestDTO;
 import com.ptithcm.exception.ProductException;
+import com.ptithcm.exception.UserException;
 import com.ptithcm.model.Product;
+import com.ptithcm.model.Staff;
+import com.ptithcm.model.User;
 import com.ptithcm.response.ApiResponse;
 import com.ptithcm.response.EntityResponse;
 import com.ptithcm.service.ProductService;
+import com.ptithcm.service.StaffService;
+import com.ptithcm.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,16 +22,17 @@ public class StaffProductController {
 
     @Autowired
     private ProductService productService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private StaffService staffService;
 
     @PostMapping("/add")
     public ResponseEntity<EntityResponse<Product>> createProduct(
             @RequestBody ProductRequestDTO productRequest,
             @RequestHeader("Authorization") String authorizationHeader) {
-
-        // Xử lý token
         String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : null;
         if (token == null) {
-            // Tạo phản hồi khi token không có
             EntityResponse response = new EntityResponse();
             response.setMessage("Unauthorized: Token is missing");
             response.setCode(HttpStatus.UNAUTHORIZED.value());
@@ -36,10 +42,7 @@ public class StaffProductController {
         }
 
         try {
-            // Gọi dịch vụ để tạo sản phẩm
             Product createdProduct = productService.createProduct(productRequest);
-
-            // Tạo phản hồi thành công với thông tin sản phẩm
             EntityResponse<Product> response = new EntityResponse<>();
             response.setData(createdProduct);
             response.setMessage("Product created successfully");
@@ -47,7 +50,6 @@ public class StaffProductController {
             response.setStatus(HttpStatus.CREATED);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
-            // Tạo phản hồi thất bại với thông báo lỗi
             EntityResponse<Product> response = new EntityResponse<>();
             response.setData(null);
             response.setMessage("Error creating product: " + e.getMessage());
@@ -64,10 +66,8 @@ public class StaffProductController {
             @PathVariable("productId") Long productId,
             @RequestHeader("Authorization") String authorizationHeader) {
 
-        // Xử lý token
         String token = authorizationHeader.startsWith("Bearer ") ? authorizationHeader.substring(7) : null;
         if (token == null) {
-            // Tạo phản hồi khi token không có
             EntityResponse<Product> response = new EntityResponse<>();
             response.setMessage("Unauthorized: Token is missing");
             response.setCode(HttpStatus.UNAUTHORIZED.value());
@@ -76,10 +76,7 @@ public class StaffProductController {
         }
 
         try {
-            // Gọi dịch vụ để cập nhật sản phẩm
             Product updatedProduct = productService.updateProduct(productId, productRequest);
-
-            // Tạo phản hồi thành công với thông tin sản phẩm
             EntityResponse<Product> response = new EntityResponse<>();
             response.setData(updatedProduct);
             response.setMessage("Product updated successfully");
@@ -87,7 +84,6 @@ public class StaffProductController {
             response.setStatus(HttpStatus.OK);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
-            // Tạo phản hồi thất bại với thông báo lỗi
             EntityResponse<Product> response = new EntityResponse<>();
             response.setData(null);
             response.setMessage("Error updating product: " + e.getMessage());
@@ -95,6 +91,24 @@ public class StaffProductController {
             response.setStatus(HttpStatus.BAD_REQUEST);
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @PutMapping("/{productId}/delete")
+    public ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long productId,
+                                                            @RequestHeader("Authorization") String jwt) throws ProductException, UserException, UserException {
+        System.err.println("Delete product controller ....");
+        User user = userService.findUserProfileByJwt(jwt);
+        Staff staff = staffService.findStaffByUserId(user.getUserId());
+        System.err.println("Xoa nguoi dung " + staff.getStaffId());
+        String msg = productService.deleteProduct(productId, staff.getStaffId());
+        System.err.println("delete product controller .... msg " + msg);
+
+        ApiResponse res = new ApiResponse();
+        res.setCode(HttpStatus.CREATED.value());
+        res.setMessage(msg);
+        res.setStatus(HttpStatus.OK);
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
 

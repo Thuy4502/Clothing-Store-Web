@@ -34,7 +34,8 @@ public class AppConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests().antMatchers("/auth/**").permitAll()
-                .anyRequest().permitAll()
+                .antMatchers("/staff/**").hasAnyAuthority("STAFF")//theo link admin
+                .antMatchers("/customer/**").hasAnyAuthority("CUSTOMER")//theo link staff
                 .and()
                 .addFilterBefore(new JwtTokenValidator(), UsernamePasswordAuthenticationFilter.class)
                 .csrf().disable()

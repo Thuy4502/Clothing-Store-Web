@@ -29,7 +29,7 @@ public class CustomeUserServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username);
-        if(user == null) {
+        if (user == null) {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
         String roleName = "";
@@ -41,10 +41,10 @@ public class CustomeUserServiceImpl implements UserDetailsService {
         }
 
         List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority( roleName));
+        authorities.add(new SimpleGrantedAuthority(roleName));
         System.err.println(roleName);
-
         System.err.println(authorities);
+
         return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
     }
 }

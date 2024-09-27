@@ -46,6 +46,12 @@ public class Product {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    @Column(name = "updated_by")
+    private Long updateBy;
+    @ManyToOne
+    @JoinColumn(name = "updated_by", insertable = false, updatable = false)
+    private Staff staff;
+
 
     @JsonIgnore
     @ManyToOne
